@@ -4,23 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Reimburse · Expense reimbursement, simplified</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          fontFamily: {
-            sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
-          },
-        },
-      },
-    }
-  </script>
+  <link rel="stylesheet" href="{{ url_for('static', filename='tailwind.css') }}" />
 </head>
-<body class="font-sans antialiased text-gray-900 bg-white">
+<body class="min-h-screen font-sans antialiased text-gray-900 bg-white flex flex-col">
 
   <!-- Navigation -->
   <nav class="sticky top-0 z-50 bg-white/90 backdrop-blur border-b border-gray-100 shadow-sm">
@@ -54,6 +40,7 @@
     </div>
   </nav>
 
+  <main class="flex-1">
   <!-- Hero Section -->
   <section class="relative bg-gradient-to-b from-indigo-50 via-white to-white pt-20 pb-24 overflow-hidden">
     <!-- Background decoration -->
@@ -326,6 +313,7 @@
       </a>
     </div>
   </section>
+  </main>
 
   <!-- Footer -->
   <footer class="bg-white border-t border-gray-100 py-6">

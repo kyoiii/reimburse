@@ -1,0 +1,9 @@
+{
+  "scripts": {
+    "build:css": "npx tailwindcss -i ./tailwind.input.css -o ./public/tailwind.css --minify"
+  },
+  "dependencies": {
+    "@tailwindcss/cli": "^4.2.1",
+    "tailwindcss": "^4.2.1"
+  }
+}
