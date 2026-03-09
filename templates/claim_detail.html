@@ -1,0 +1,488 @@
+{% extends "base.html" %}
+
+{% block title %}{{ claim.period_name }} &ndash; Claim Detail{% endblock %}
+
+{% block content %}
+
+<!-- Back link -->
+<div class="mb-6">
+  <a href="{{ url_for('dashboard') }}"
+     class="inline-flex items-center gap-1.5 text-sm font-medium text-gray-500 hover:text-indigo-600 transition-colors">
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+    </svg>
+    Back to Dashboard
+  </a>
+</div>
+
+<!-- Page Header -->
+<div class="bg-white rounded-xl border border-gray-200 shadow-sm p-6 mb-6">
+  <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+    <div>
+      <div class="flex items-center gap-3 mb-1 flex-wrap">
+        <h1 class="text-2xl font-bold text-gray-900">{{ claim.period_name }}</h1>
+        {% if claim.status == 'paid' %}
+        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-green-100 text-green-800">
+          <span class="w-2 h-2 rounded-full bg-green-500 mr-1.5"></span>Paid
+        </span>
+        {% else %}
+        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-amber-100 text-amber-800">
+          <span class="w-2 h-2 rounded-full bg-amber-500 mr-1.5"></span>Pending
+        </span>
+        {% endif %}
+      </div>
+      {% if current_user.is_admin %}
+      <p class="text-sm text-gray-500">
+        Employee:
+        <span class="font-medium text-gray-700">{{ claim.user.full_name or claim.user.username }}</span>
+        &middot;
+        {{ claim.company.name if claim.company else 'N/A' }}
+      </p>
+      {% else %}
+      <p class="text-sm text-gray-500">{{ claim.company.name if claim.company else '' }}</p>
+      {% endif %}
+    </div>
+
+    <!-- Header action buttons -->
+    <div class="flex items-center gap-2 flex-wrap">
+      <!-- Export CSV -->
+      <a href="{{ url_for('export_csv', claim_id=claim.id) }}"
+        class="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 border border-gray-200 transition-colors">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+        </svg>
+        Export CSV
+      </a>
+
+      <!-- Admin status toggle -->
+      {% if current_user.is_admin %}
+      <form method="POST" action="{{ url_for('update_claim_status', claim_id=claim.id) }}">
+      <input type="hidden" name="next" value="{{ url_for('claim_detail', claim_id=claim.id) }}">
+      {% if claim.status == 'pending' %}
+        <input type="hidden" name="status" value="paid">
+        <button type="submit"
+          class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-green-600 text-white text-sm font-medium hover:bg-green-700 transition-colors shadow-sm">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+          Mark as Paid
+        </button>
+      {% else %}
+        <input type="hidden" name="status" value="pending">
+        <button type="submit"
+          class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-500 text-white text-sm font-medium hover:bg-amber-600 transition-colors shadow-sm">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+          Mark as Pending
+        </button>
+      {% endif %}
+      </form>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Totals summary bar -->
+  <div class="mt-5 pt-5 border-t border-gray-100 grid grid-cols-3 gap-4">
+    <div>
+      <p class="text-xs text-gray-500 uppercase tracking-wide font-medium">Travel Total</p>
+      <p class="text-xl font-bold text-gray-800 mt-0.5">${{ '%.2f'|format(travel_total) }}</p>
+    </div>
+    <div>
+      <p class="text-xs text-gray-500 uppercase tracking-wide font-medium">Purchases Total</p>
+      <p class="text-xl font-bold text-gray-800 mt-0.5">${{ '%.2f'|format(purchase_total) }}</p>
+    </div>
+    <div class="border-l border-gray-200 pl-4">
+      <p class="text-xs text-gray-500 uppercase tracking-wide font-medium">Grand Total</p>
+      <p class="text-2xl font-bold text-indigo-700 mt-0.5">${{ '%.2f'|format(grand_total) }}</p>
+    </div>
+  </div>
+</div>
+
+<!-- Part 1: Travel Claims -->
+<div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden mb-6">
+  <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+    <div>
+      <h2 class="text-base font-semibold text-gray-800">Part 1: Vehicle Travel Claims</h2>
+      <p class="text-xs text-gray-400 mt-0.5">{{ travel_claims|length }} trip(s) recorded</p>
+    </div>
+    <span class="text-sm font-semibold text-gray-700 bg-gray-100 px-3 py-1 rounded-lg">
+      ${{ '%.2f'|format(travel_total) }}
+    </span>
+  </div>
+
+  {% if travel_claims %}
+  <div class="overflow-x-auto">
+    <table class="min-w-full divide-y divide-gray-100">
+      <thead class="bg-gray-50">
+        <tr>
+          <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Date</th>
+          <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">From</th>
+          <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">To</th>
+          <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Purpose</th>
+          <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Trip Type</th>
+          <th class="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Distance (km)</th>
+          <th class="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Toll</th>
+          <th class="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Mileage</th>
+          <th class="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Total</th>
+          <th class="px-4 py-3 w-8"></th>
+        </tr>
+      </thead>
+      <tbody class="bg-white divide-y divide-gray-100">
+        {% for tc in travel_claims %}
+        <tr class="hover:bg-gray-50 transition-colors">
+          <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-700">
+            {{ tc.date.strftime('%d %b %Y') if tc.date else '—' }}
+          </td>
+          <td class="px-4 py-3 text-sm text-gray-700 max-w-[140px] truncate" title="{{ tc.origin or '' }}">
+            {{ tc.origin or '—' }}
+          </td>
+          <td class="px-4 py-3 text-sm text-gray-700 max-w-[140px] truncate" title="{{ tc.destination or '' }}">
+            {{ tc.destination or '—' }}
+          </td>
+          <td class="px-4 py-3 text-sm text-gray-600 max-w-[180px] truncate" title="{{ tc.purpose or '' }}">
+            {{ tc.purpose or '—' }}
+          </td>
+          <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ tc.trip_type or '—' }}</td>
+          <td class="px-4 py-3 text-sm text-gray-700 text-right whitespace-nowrap">
+            {{ '%.1f'|format(tc.distance_km) if tc.distance_km else '—' }}
+          </td>
+          <td class="px-4 py-3 text-sm text-gray-700 text-right whitespace-nowrap">
+            {% if tc.toll_cost %}${{ '%.2f'|format(tc.toll_cost) }}{% else %}—{% endif %}
+          </td>
+          <td class="px-4 py-3 text-sm text-gray-700 text-right whitespace-nowrap">
+            {% if tc.mileage_cost %}${{ '%.2f'|format(tc.mileage_cost) }}{% else %}—{% endif %}
+          </td>
+          <td class="px-4 py-3 text-sm font-semibold text-gray-900 text-right whitespace-nowrap">
+            ${{ '%.2f'|format((tc.mileage_cost or 0) + (tc.toll_cost or 0)) }}
+          </td>
+          <td class="px-4 py-3 text-center">
+            <form method="POST" action="{{ url_for('delete_travel', claim_id=claim.id, travel_id=tc.id) }}"
+                  onsubmit="return confirm('Delete this travel entry?')">
+              <button type="submit"
+                class="inline-flex items-center justify-center w-6 h-6 rounded-md text-red-400 hover:text-white hover:bg-red-500 transition-colors"
+                title="Delete">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+              </button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+      <tfoot class="bg-gray-50 border-t-2 border-gray-200">
+        <tr>
+          <td colspan="9" class="px-4 py-3 text-sm font-semibold text-gray-700 text-right">Travel Subtotal</td>
+          <td class="px-4 py-3 text-sm font-bold text-indigo-700 text-right whitespace-nowrap">
+            ${{ '%.2f'|format(travel_total) }}
+          </td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+  {% else %}
+  <div class="py-10 text-center text-sm text-gray-400">No travel claims recorded.</div>
+  {% endif %}
+
+  <!-- Add Travel Entry -->
+  <div class="border-t border-gray-100 px-6 py-5">
+    <h3 class="text-sm font-semibold text-gray-700 mb-4">Add Travel Entry</h3>
+    <form method="POST" action="{{ url_for('add_travel', claim_id=claim.id) }}">
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 mb-3">
+        <div>
+          <label class="block text-xs font-medium text-gray-600 mb-1">Date</label>
+          <input type="date" name="date" required
+            class="w-full px-2.5 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent" />
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-gray-600 mb-1">From</label>
+          <input type="text" name="origin" required placeholder="Origin"
+            class="w-full px-2.5 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent" />
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-gray-600 mb-1">To</label>
+          <input type="text" name="destination" required placeholder="Destination"
+            class="w-full px-2.5 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent" />
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-gray-600 mb-1">Purpose</label>
+          <input type="text" name="purpose" required placeholder="Reason for trip"
+            class="w-full px-2.5 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent" />
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-gray-600 mb-1">Trip Type</label>
+          <input type="text" name="trip_type" placeholder="One-way / Return"
+            class="w-full px-2.5 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent" />
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-gray-600 mb-1">Toll Cost ($)</label>
+          <input type="number" name="toll_cost" value="0" step="0.01" min="0" placeholder="0.00"
+            class="w-full px-2.5 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent" />
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-gray-600 mb-1">Distance (km)</label>
+          <input type="number" name="distance_km" required step="0.1" min="0" placeholder="0.0"
+            class="w-full px-2.5 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent" />
+        </div>
+      </div>
+      <button type="submit"
+        class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium bg-indigo-600 text-white hover:bg-indigo-700 transition-colors shadow-sm">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+        </svg>
+        Add
+      </button>
+    </form>
+  </div>
+</div>
+
+<!-- Part 2: Purchase Claims -->
+<div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden mb-6">
+  <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+    <div>
+      <h2 class="text-base font-semibold text-gray-800">Part 2: Claims for Purchased Items</h2>
+      <p class="text-xs text-gray-400 mt-0.5">
+        {{ (business_purchases|length) + (personal_purchases|length) }} item(s) &mdash;
+        Business: ${{ '%.2f'|format(business_total) }},
+        Personal: ${{ '%.2f'|format(personal_total) }}
+      </p>
+    </div>
+    <span class="text-sm font-semibold text-gray-700 bg-gray-100 px-3 py-1 rounded-lg">
+      ${{ '%.2f'|format(purchase_total) }}
+    </span>
+  </div>
+
+  <!-- Business Purchases -->
+  {% if business_purchases %}
+  <div class="px-6 pt-4 pb-2">
+    <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Business</h3>
+  </div>
+  <div class="overflow-x-auto">
+    <table class="min-w-full divide-y divide-gray-100">
+      <thead class="bg-indigo-50">
+        <tr>
+          <th class="px-4 py-3 text-left text-xs font-semibold text-indigo-700 uppercase tracking-wider">Date</th>
+          <th class="px-4 py-3 text-left text-xs font-semibold text-indigo-700 uppercase tracking-wider">Item</th>
+          <th class="px-4 py-3 text-left text-xs font-semibold text-indigo-700 uppercase tracking-wider">Purchased From</th>
+          <th class="px-4 py-3 text-left text-xs font-semibold text-indigo-700 uppercase tracking-wider">Purpose</th>
+          <th class="px-4 py-3 text-center text-xs font-semibold text-indigo-700 uppercase tracking-wider">Receipt</th>
+          <th class="px-4 py-3 text-right text-xs font-semibold text-indigo-700 uppercase tracking-wider">Price</th>
+          <th class="px-4 py-3 w-8"></th>
+        </tr>
+      </thead>
+      <tbody class="bg-white divide-y divide-gray-100">
+        {% for pc in business_purchases %}
+        <tr class="hover:bg-gray-50 transition-colors">
+          <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-700">
+            {{ pc.date.strftime('%d %b %Y') if pc.date else '—' }}
+          </td>
+          <td class="px-4 py-3 text-sm text-gray-800 font-medium max-w-[200px] truncate" title="{{ pc.item or '' }}">
+            {{ pc.item or '—' }}
+          </td>
+          <td class="px-4 py-3 text-sm text-gray-600 max-w-[140px] truncate" title="{{ pc.purchased_from or '' }}">
+            {{ pc.purchased_from or '—' }}
+          </td>
+          <td class="px-4 py-3 text-sm text-gray-600 max-w-[180px] truncate" title="{{ pc.purpose or '' }}">
+            {{ pc.purpose or '—' }}
+          </td>
+          <td class="px-4 py-3 text-center">
+            {% if pc.has_receipt %}
+            <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-green-100 text-green-700 text-xs font-bold">Y</span>
+            {% else %}
+            <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-red-100 text-red-600 text-xs font-bold">N</span>
+            {% endif %}
+          </td>
+          <td class="px-4 py-3 text-sm font-semibold text-gray-900 text-right whitespace-nowrap">
+            ${{ '%.2f'|format(pc.price or 0) }}
+          </td>
+          <td class="px-4 py-3 text-center">
+            <form method="POST" action="{{ url_for('delete_purchase', claim_id=claim.id, purchase_id=pc.id) }}"
+                  onsubmit="return confirm('Delete this purchase entry?')">
+              <button type="submit"
+                class="inline-flex items-center justify-center w-6 h-6 rounded-md text-red-400 hover:text-white hover:bg-red-500 transition-colors"
+                title="Delete">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+              </button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+      <tfoot class="bg-indigo-50 border-t border-indigo-200">
+        <tr>
+          <td colspan="6" class="px-4 py-2 text-xs font-semibold text-indigo-700 text-right">Business Subtotal</td>
+          <td class="px-4 py-2 text-sm font-bold text-indigo-700 text-right">${{ '%.2f'|format(business_total) }}</td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+  {% endif %}
+
+  <!-- Personal Purchases -->
+  {% if personal_purchases %}
+  <div class="px-6 pt-5 pb-2 {% if business_purchases %}border-t border-gray-100{% endif %}">
+    <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Personal</h3>
+  </div>
+  <div class="overflow-x-auto">
+    <table class="min-w-full divide-y divide-gray-100">
+      <thead class="bg-purple-50">
+        <tr>
+          <th class="px-4 py-3 text-left text-xs font-semibold text-purple-700 uppercase tracking-wider">Date</th>
+          <th class="px-4 py-3 text-left text-xs font-semibold text-purple-700 uppercase tracking-wider">Item</th>
+          <th class="px-4 py-3 text-left text-xs font-semibold text-purple-700 uppercase tracking-wider">Purchased From</th>
+          <th class="px-4 py-3 text-left text-xs font-semibold text-purple-700 uppercase tracking-wider">Purpose</th>
+          <th class="px-4 py-3 text-center text-xs font-semibold text-purple-700 uppercase tracking-wider">Receipt</th>
+          <th class="px-4 py-3 text-right text-xs font-semibold text-purple-700 uppercase tracking-wider">Price</th>
+          <th class="px-4 py-3 w-8"></th>
+        </tr>
+      </thead>
+      <tbody class="bg-white divide-y divide-gray-100">
+        {% for pc in personal_purchases %}
+        <tr class="hover:bg-gray-50 transition-colors">
+          <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-700">
+            {{ pc.date.strftime('%d %b %Y') if pc.date else '—' }}
+          </td>
+          <td class="px-4 py-3 text-sm text-gray-800 font-medium max-w-[200px] truncate" title="{{ pc.item or '' }}">
+            {{ pc.item or '—' }}
+          </td>
+          <td class="px-4 py-3 text-sm text-gray-600 max-w-[140px] truncate" title="{{ pc.purchased_from or '' }}">
+            {{ pc.purchased_from or '—' }}
+          </td>
+          <td class="px-4 py-3 text-sm text-gray-600 max-w-[180px] truncate" title="{{ pc.purpose or '' }}">
+            {{ pc.purpose or '—' }}
+          </td>
+          <td class="px-4 py-3 text-center">
+            {% if pc.has_receipt %}
+            <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-green-100 text-green-700 text-xs font-bold">Y</span>
+            {% else %}
+            <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-red-100 text-red-600 text-xs font-bold">N</span>
+            {% endif %}
+          </td>
+          <td class="px-4 py-3 text-sm font-semibold text-gray-900 text-right whitespace-nowrap">
+            ${{ '%.2f'|format(pc.price or 0) }}
+          </td>
+          <td class="px-4 py-3 text-center">
+            <form method="POST" action="{{ url_for('delete_purchase', claim_id=claim.id, purchase_id=pc.id) }}"
+                  onsubmit="return confirm('Delete this purchase entry?')">
+              <button type="submit"
+                class="inline-flex items-center justify-center w-6 h-6 rounded-md text-red-400 hover:text-white hover:bg-red-500 transition-colors"
+                title="Delete">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+              </button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+      <tfoot class="bg-purple-50 border-t border-purple-200">
+        <tr>
+          <td colspan="6" class="px-4 py-2 text-xs font-semibold text-purple-700 text-right">Personal Subtotal</td>
+          <td class="px-4 py-2 text-sm font-bold text-purple-700 text-right">${{ '%.2f'|format(personal_total) }}</td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+  {% endif %}
+
+  {% if not business_purchases and not personal_purchases %}
+  <div class="py-10 text-center text-sm text-gray-400">No purchase claims recorded.</div>
+  {% endif %}
+
+  <!-- Purchase Grand Subtotal -->
+  {% if business_purchases or personal_purchases %}
+  <div class="bg-gray-50 border-t-2 border-gray-200 px-6 py-3 flex justify-end">
+    <span class="text-sm font-semibold text-gray-700 mr-4">Purchase Subtotal</span>
+    <span class="text-sm font-bold text-indigo-700">${{ '%.2f'|format(purchase_total) }}</span>
+  </div>
+  {% endif %}
+
+  <!-- Add Purchase Entry -->
+  <div class="border-t border-gray-100 px-6 py-5">
+    <h3 class="text-sm font-semibold text-gray-700 mb-4">Add Purchase Entry</h3>
+    <form method="POST" action="{{ url_for('add_purchase', claim_id=claim.id) }}">
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 mb-3">
+        <div>
+          <label class="block text-xs font-medium text-gray-600 mb-1">Date</label>
+          <input type="date" name="date" required
+            class="w-full px-2.5 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent" />
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-gray-600 mb-1">Item</label>
+          <input type="text" name="item" required placeholder="What was purchased"
+            class="w-full px-2.5 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent" />
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-gray-600 mb-1">Purchased From</label>
+          <input type="text" name="purchased_from" placeholder="Supplier / Store"
+            class="w-full px-2.5 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent" />
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-gray-600 mb-1">Purpose</label>
+          <input type="text" name="purpose" required placeholder="Reason for purchase"
+            class="w-full px-2.5 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent" />
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-gray-600 mb-1">Price ($)</label>
+          <input type="number" name="price" required step="0.01" min="0" placeholder="0.00"
+            class="w-full px-2.5 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent" />
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-gray-600 mb-1">Category</label>
+          <select name="category"
+            class="w-full px-2.5 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent bg-white">
+            <option value="Business">Business</option>
+            <option value="Personal">Personal</option>
+          </select>
+        </div>
+        <div class="flex items-end pb-1">
+          <label class="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
+            <input type="checkbox" name="has_receipt" value="1"
+              class="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" />
+            Has receipt
+          </label>
+        </div>
+      </div>
+      <button type="submit"
+        class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium bg-indigo-600 text-white hover:bg-indigo-700 transition-colors shadow-sm">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+        </svg>
+        Add
+      </button>
+    </form>
+  </div>
+</div>
+
+<!-- Grand Total Footer Card -->
+<div class="bg-indigo-600 rounded-xl shadow-sm p-5 flex items-center justify-between text-white mb-6">
+  <div>
+    <p class="text-indigo-200 text-sm font-medium">Grand Total for {{ claim.period_name }}</p>
+    <p class="text-xs text-indigo-300 mt-0.5">
+      Travel (${{ '%.2f'|format(travel_total) }}) + Purchases (${{ '%.2f'|format(purchase_total) }})
+    </p>
+  </div>
+  <p class="text-3xl font-bold">${{ '%.2f'|format(grand_total) }}</p>
+</div>
+
+<!-- Delete Claim -->
+<div class="border-t border-gray-200 pt-6">
+  <form method="POST" action="{{ url_for('delete_claim', claim_id=claim.id) }}"
+        onsubmit="return confirm('Are you sure you want to permanently delete this claim? This cannot be undone.')">
+    <button type="submit"
+      class="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 border border-red-200 hover:border-red-300 transition-colors">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+      </svg>
+      Delete this claim
+    </button>
+  </form>
+</div>
+
+{% endblock %}
