@@ -52,7 +52,7 @@
       </svg>
     </div>
     <div>
-      <p class="text-xs font-medium text-gray-500 uppercase tracking-wide">Total Claimed</p>
+      <p class="text-xs font-medium text-gray-500">Total Claimed</p>
       <p class="text-2xl font-bold text-gray-900 mt-0.5">${{ '%.2f'|format(total_claimed) }}</p>
       {% if current_user.is_admin %}
       <p class="text-xs text-gray-400 mt-0.5">{{ claim_periods|length }} period{{ 's' if claim_periods|length != 1 else '' }}</p>
@@ -71,7 +71,7 @@
       </svg>
     </div>
     <div>
-      <p class="text-xs font-medium text-gray-500 uppercase tracking-wide">Total Paid</p>
+      <p class="text-xs font-medium text-gray-500">Total Paid</p>
       <p class="text-2xl font-bold text-green-700 mt-0.5">${{ '%.2f'|format(total_paid) }}</p>
       <p class="text-xs text-gray-400 mt-0.5">Reimbursed to date</p>
     </div>
@@ -86,7 +86,7 @@
       </svg>
     </div>
     <div>
-      <p class="text-xs font-medium text-gray-500 uppercase tracking-wide">Outstanding</p>
+      <p class="text-xs font-medium text-gray-500">Outstanding</p>
       <p class="text-2xl font-bold text-amber-700 mt-0.5">${{ '%.2f'|format(outstanding) }}</p>
       <p class="text-xs text-gray-400 mt-0.5">Awaiting payment</p>
     </div>
@@ -133,21 +133,21 @@
     <table id="claimsTable" class="min-w-full divide-y divide-gray-100">
       <thead class="bg-gray-50">
         <tr>
-          <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider cursor-pointer hover:text-indigo-600 select-none" onclick="sortTable(0, 'str')">
-            Period <span class="sort-icon text-gray-300">↕</span></th>
+          <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 cursor-pointer hover:text-indigo-600 select-none" onclick="sortTable(0, 'str')">
+            Period <svg class="sort-icon inline-block w-3.5 h-3.5 ml-1 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l4-4 4 4M16 15l-4 4-4-4"/></svg></th>
           {% if current_user.is_admin %}
-          <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider cursor-pointer hover:text-indigo-600 select-none" onclick="sortTable(1, 'str')">
-            Employee <span class="sort-icon text-gray-300">↕</span></th>
+          <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 cursor-pointer hover:text-indigo-600 select-none" onclick="sortTable(1, 'str')">
+            Employee <svg class="sort-icon inline-block w-3.5 h-3.5 ml-1 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l4-4 4 4M16 15l-4 4-4-4"/></svg></th>
           {% endif %}
-          <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Company</th>
-          <th class="px-6 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider cursor-pointer hover:text-indigo-600 select-none" onclick="sortTable({{ 3 if current_user.is_admin else 2 }}, 'num')">
-            Travel <span class="sort-icon text-gray-300">↕</span></th>
-          <th class="px-6 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider cursor-pointer hover:text-indigo-600 select-none" onclick="sortTable({{ 4 if current_user.is_admin else 3 }}, 'num')">
-            Purchases <span class="sort-icon text-gray-300">↕</span></th>
-          <th class="px-6 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider cursor-pointer hover:text-indigo-600 select-none" onclick="sortTable({{ 5 if current_user.is_admin else 4 }}, 'num')">
-            Grand Total <span class="sort-icon text-gray-300">↕</span></th>
-          <th class="px-6 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
-          <th class="px-6 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Actions</th>
+          <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500">Company</th>
+          <th class="px-6 py-3 text-right text-xs font-semibold text-gray-500 cursor-pointer hover:text-indigo-600 select-none" onclick="sortTable({{ 3 if current_user.is_admin else 2 }}, 'num')">
+            Travel <svg class="sort-icon inline-block w-3.5 h-3.5 ml-1 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l4-4 4 4M16 15l-4 4-4-4"/></svg></th>
+          <th class="px-6 py-3 text-right text-xs font-semibold text-gray-500 cursor-pointer hover:text-indigo-600 select-none" onclick="sortTable({{ 4 if current_user.is_admin else 3 }}, 'num')">
+            Purchases <svg class="sort-icon inline-block w-3.5 h-3.5 ml-1 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l4-4 4 4M16 15l-4 4-4-4"/></svg></th>
+          <th class="px-6 py-3 text-right text-xs font-semibold text-gray-500 cursor-pointer hover:text-indigo-600 select-none" onclick="sortTable({{ 5 if current_user.is_admin else 4 }}, 'num')">
+            Grand Total <svg class="sort-icon inline-block w-3.5 h-3.5 ml-1 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l4-4 4 4M16 15l-4 4-4-4"/></svg></th>
+          <th class="px-6 py-3 text-center text-xs font-semibold text-gray-500">Status</th>
+          <th class="px-6 py-3 text-right text-xs font-semibold text-gray-500">Actions</th>
         </tr>
       </thead>
       <tbody class="bg-white divide-y divide-gray-100">
@@ -301,11 +301,17 @@ function sortTable(col, type) {
     return (_sortAsc ? 1 : -1) * av.localeCompare(bv);
   });
   rows.forEach(function(r) { tbody.appendChild(r); });
-  table.querySelectorAll('.sort-icon').forEach(function(el) { el.textContent = '↕'; el.className = 'sort-icon text-gray-300'; });
+  table.querySelectorAll('.sort-icon path').forEach(function(p) {
+    p.setAttribute('d', 'M8 9l4-4 4 4M16 15l-4 4-4-4');
+    p.parentElement.classList.remove('text-indigo-500'); p.parentElement.classList.add('text-gray-300');
+  });
   const ths = table.querySelectorAll('thead th');
   if (ths[col]) {
-    const icon = ths[col].querySelector('.sort-icon');
-    if (icon) { icon.textContent = _sortAsc ? '↑' : '↓'; icon.className = 'sort-icon text-indigo-500'; }
+    const icon = ths[col].querySelector('.sort-icon path');
+    if (icon) {
+      icon.setAttribute('d', _sortAsc ? 'M12 19V5m0 0l-7 7m7-7l7 7' : 'M12 5v14m0 0l7-7m-7 7l-7-7');
+      icon.parentElement.classList.remove('text-gray-300'); icon.parentElement.classList.add('text-indigo-500');
+    }
   }
 }
 </script>
