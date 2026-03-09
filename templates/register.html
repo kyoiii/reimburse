@@ -1,145 +1,69 @@
-{% extends "base.html" %}
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-gray-50">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Create Account · Reimburse</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='tailwind.css') }}" />
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center font-sans antialiased text-gray-900 bg-gray-50 px-4 py-8">
 
-{% block title %}Register your company{% endblock %}
+  {% with messages = get_flashed_messages(with_categories=True) %}{% if messages %}
+  <div class="w-full max-w-md mb-4 space-y-2">
+    {% for category, message in messages %}
+    {% set colors = {'success': 'bg-green-50 border-green-200 text-green-800', 'error': 'bg-red-50 border-red-200 text-red-800', 'danger': 'bg-red-50 border-red-200 text-red-800', 'warning': 'bg-amber-50 border-amber-200 text-amber-800'} %}
+    <div class="px-4 py-3 rounded-lg border text-sm font-medium {{ colors.get(category, 'bg-blue-50 border-blue-200 text-blue-800') }}">{{ message }}</div>
+    {% endfor %}
+  </div>
+  {% endif %}{% endwith %}
 
-{% block content %}
-
-<div class="min-h-[70vh] flex items-start justify-center pt-8">
-  <div class="w-full max-w-lg">
-
-    <!-- Header -->
-    <div class="text-center mb-8">
-      <div class="w-12 h-12 bg-indigo-600 rounded-xl flex items-center justify-center mx-auto mb-4 shadow-sm">
-        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
-        </svg>
+  <div class="w-full max-w-md">
+    <div class="flex items-center justify-center gap-2 mb-6">
+      <div class="w-8 h-8 bg-indigo-600 rounded-md flex items-center justify-center">
+        <span class="text-white font-bold text-sm">R</span>
       </div>
-      <h1 class="text-2xl font-bold text-gray-900">Register your company</h1>
-      <p class="mt-2 text-sm text-gray-500">Create a free account for your team. You'll be the admin.</p>
+      <span class="text-xl font-bold text-indigo-600">Reimburse</span>
     </div>
 
-    <!-- Card -->
     <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-8">
-
-      <form method="POST" action="{{ url_for('register') }}" class="space-y-5">
-
-        <!-- Company Name -->
+      <h1 class="text-lg font-semibold text-gray-900 mb-6">Create your company account</h1>
+      <form method="POST" action="{{ url_for('register') }}" class="space-y-4">
         <div>
-          <label for="company_name" class="block text-sm font-medium text-gray-700 mb-1.5">
-            Company Name <span class="text-red-500">*</span>
-          </label>
-          <input
-            type="text"
-            id="company_name"
-            name="company_name"
-            required
-            placeholder="Acme Corp"
-            class="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400
-                   focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
-          />
+          <label for="company_name" class="block text-sm font-medium text-gray-700 mb-1">Company Name <span class="text-red-500">*</span></label>
+          <input type="text" id="company_name" name="company_name" required placeholder="Acme Corp"
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition" />
         </div>
-
-        <!-- Full Name -->
         <div>
-          <label for="full_name" class="block text-sm font-medium text-gray-700 mb-1.5">
-            Your Full Name <span class="text-red-500">*</span>
-          </label>
-          <input
-            type="text"
-            id="full_name"
-            name="full_name"
-            required
-            placeholder="Jane Smith"
-            class="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400
-                   focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
-          />
+          <label for="full_name" class="block text-sm font-medium text-gray-700 mb-1">Your Name <span class="text-red-500">*</span></label>
+          <input type="text" id="full_name" name="full_name" required placeholder="Jane Smith"
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition" />
         </div>
-
-        <!-- Username -->
         <div>
-          <label for="username" class="block text-sm font-medium text-gray-700 mb-1.5">
-            Username <span class="text-red-500">*</span>
-          </label>
-          <input
-            type="text"
-            id="username"
-            name="username"
-            required
-            placeholder="jsmith"
-            autocomplete="username"
-            class="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400
-                   focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
-          />
-          <p class="mt-1 text-xs text-gray-400">Lowercase letters and numbers only. Used to sign in.</p>
+          <label for="username" class="block text-sm font-medium text-gray-700 mb-1">Username <span class="text-red-500">*</span></label>
+          <input type="text" id="username" name="username" required placeholder="jsmith" autocomplete="username"
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition" />
         </div>
-
-        <!-- Email -->
         <div>
-          <label for="email" class="block text-sm font-medium text-gray-700 mb-1.5">
-            Email <span class="text-gray-400 font-normal">(optional)</span>
-          </label>
-          <input
-            type="email"
-            id="email"
-            name="email"
-            placeholder="jane@acmecorp.com"
-            class="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400
-                   focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
-          />
+          <label for="password" class="block text-sm font-medium text-gray-700 mb-1">Password <span class="text-red-500">*</span></label>
+          <input type="password" id="password" name="password" required autocomplete="new-password"
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition" />
         </div>
-
-        <!-- Password -->
         <div>
-          <label for="password" class="block text-sm font-medium text-gray-700 mb-1.5">
-            Password <span class="text-red-500">*</span>
-          </label>
-          <input
-            type="password"
-            id="password"
-            name="password"
-            required
-            autocomplete="new-password"
-            class="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400
-                   focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
-          />
-          <p class="mt-1 text-xs text-gray-400">Minimum 8 characters.</p>
+          <label for="confirm_password" class="block text-sm font-medium text-gray-700 mb-1">Confirm Password <span class="text-red-500">*</span></label>
+          <input type="password" id="confirm_password" name="confirm_password" required autocomplete="new-password"
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition" />
         </div>
-
-        <!-- Confirm Password -->
-        <div>
-          <label for="confirm_password" class="block text-sm font-medium text-gray-700 mb-1.5">
-            Confirm Password <span class="text-red-500">*</span>
-          </label>
-          <input
-            type="password"
-            id="confirm_password"
-            name="confirm_password"
-            required
-            autocomplete="new-password"
-            class="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400
-                   focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
-          />
-        </div>
-
-        <!-- Submit -->
-        <div class="pt-2">
-          <button type="submit"
-            class="w-full py-3 px-4 rounded-lg text-sm font-semibold bg-indigo-600 text-white hover:bg-indigo-700 transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
-            Create account
-          </button>
-        </div>
-
+        <button type="submit"
+          class="w-full py-2.5 rounded-lg bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 mt-2">
+          Create account
+        </button>
       </form>
     </div>
 
-    <!-- Sign in link -->
-    <p class="text-center text-sm text-gray-500 mt-5">
-      Already have an account?
-      <a href="{{ url_for('login') }}" class="text-indigo-600 font-medium hover:text-indigo-700 hover:underline">Sign in</a>
+    <p class="text-center text-sm text-gray-500 mt-4">
+      Already have an account? <a href="{{ url_for('login') }}" class="text-indigo-600 font-medium hover:underline">Sign in</a>
     </p>
-
   </div>
-</div>
 
-{% endblock %}
+</body>
+</html>
