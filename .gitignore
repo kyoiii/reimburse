@@ -11,3 +11,6 @@ env/
 dist/
 build/
 .pytest_cache/
+.vercel/
+*.xlsx
+.vercel

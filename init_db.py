@@ -1,4 +1,5 @@
-from app import app, db
+from app import app, ensure_database_initialized
+
 with app.app_context():
-    db.create_all()
+    ensure_database_initialized(force=True)
     print("Database tables created.")

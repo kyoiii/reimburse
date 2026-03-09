@@ -9,20 +9,39 @@ from flask import Flask, render_template, request, redirect, url_for, flash, abo
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from models import db, User, Company, ClaimPeriod, TravelClaim, PurchaseClaim
 
-app = Flask(__name__)
-app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
-
-# Ensure the data directory exists alongside the app
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DATA_DIR = os.path.join(BASE_DIR, 'data')
-os.makedirs(DATA_DIR, exist_ok=True)
+LOCAL_DATA_DIR = os.path.join(BASE_DIR, 'data')
+VERCEL_DATA_DIR = '/tmp'
+IS_VERCEL = bool(os.environ.get('VERCEL'))
+IS_PRODUCTION = os.environ.get('FLASK_ENV') == 'production' or IS_VERCEL
 
-database_url = os.environ.get('DATABASE_URL', f'sqlite:///{os.path.join(DATA_DIR, "reimbursements.db")}')
-# Render uses postgres:// but SQLAlchemy needs postgresql://
-if database_url.startswith('postgres://'):
-    database_url = database_url.replace('postgres://', 'postgresql://', 1)
-app.config['SQLALCHEMY_DATABASE_URI'] = database_url
+
+def _normalize_database_url(database_url: str) -> str:
+    if database_url.startswith('postgres://'):
+        return database_url.replace('postgres://', 'postgresql://', 1)
+    return database_url
+
+
+def _sqlite_database_url(db_dir: str) -> str:
+    os.makedirs(db_dir, exist_ok=True)
+    return f'sqlite:///{os.path.join(db_dir, "reimbursements.db")}'
+
+
+def _default_database_url() -> str:
+    if os.environ.get('DATABASE_URL'):
+        return _normalize_database_url(os.environ['DATABASE_URL'])
+    if IS_VERCEL:
+        print('DATABASE_URL not set; using temporary /tmp SQLite database on Vercel.')
+        return _sqlite_database_url(VERCEL_DATA_DIR)
+    return _sqlite_database_url(LOCAL_DATA_DIR)
+
+
+app = Flask(__name__, static_folder='public', static_url_path='/static')
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
+app.config['SQLALCHEMY_DATABASE_URI'] = _default_database_url()
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+app.config['SESSION_COOKIE_SECURE'] = IS_PRODUCTION
 
 db.init_app(app)
 
@@ -30,6 +49,7 @@ login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 login_manager.login_message = 'Please log in to access this page.'
 login_manager.login_message_category = 'warning'
+_database_initialized = False
 
 
 @login_manager.user_loader
@@ -44,7 +64,7 @@ def load_user(user_id):
 @app.cli.command('init-db')
 def init_db_command():
     """Create all database tables."""
-    db.create_all()
+    ensure_database_initialized(force=True)
     click.echo('Database tables created successfully.')
 
 
@@ -70,6 +90,18 @@ def _claim_owned_or_admin(claim):
     return claim.user_id == current_user.id
 
 
+def ensure_database_initialized(force: bool = False):
+    global _database_initialized
+    if _database_initialized and not force:
+        return
+    with app.app_context():
+        db.create_all()
+    _database_initialized = True
+
+
+ensure_database_initialized()
+
+
 # ---------------------------------------------------------------------------
 # Error handlers
 # ---------------------------------------------------------------------------
@@ -93,6 +125,12 @@ def index():
     if current_user.is_authenticated:
         return redirect(url_for('dashboard'))
     return render_template('landing.html')
+
+
+@app.route('/healthz')
+def healthz():
+    ensure_database_initialized()
+    return {'status': 'ok'}, 200
 
 
 # ---------------------------------------------------------------------------
@@ -799,5 +837,6 @@ def admin_overview():
 # ---------------------------------------------------------------------------
 
 if __name__ == '__main__':
+    ensure_database_initialized()
     port = int(os.environ.get('PORT', 8080))
     app.run(debug=os.environ.get('FLASK_ENV') != 'production', host='0.0.0.0', port=port)

@@ -1,0 +1,131 @@
+/* Reimbursement Manager - custom CSS supplement to Tailwind */
+
+/* Smooth transitions globally (exclude transforms/opacity to avoid interfering with animations) */
+*, *::before, *::after {
+  transition-property: color, background-color, border-color, box-shadow, text-decoration-color, fill, stroke;
+  transition-duration: 150ms;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Tabular number rendering for financial data */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Sticky table headers */
+.sticky-header thead th {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+/* Truncate with tooltip hint - use pointer only on interactive elements */
+td[title],
+span[title] {
+  cursor: default;
+}
+
+/* Custom scrollbar for table overflow containers */
+.overflow-x-auto::-webkit-scrollbar {
+  height: 5px;
+}
+
+.overflow-x-auto::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 9999px;
+}
+
+.overflow-x-auto::-webkit-scrollbar-thumb {
+  background: #c7d2fe;
+  border-radius: 9999px;
+}
+
+.overflow-x-auto::-webkit-scrollbar-thumb:hover {
+  background: #818cf8;
+}
+
+/* Ensure table cells don't create awkward line wraps in narrow viewports */
+table {
+  border-collapse: collapse;
+}
+
+/* Input/select focus enhancement */
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+}
+
+/* Flash message container animation */
+#flash-messages {
+  animation: slideDown 0.25s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Modal backdrop */
+#add-user-modal {
+  animation: fadeIn 0.15s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* Print styles for claim detail page */
+@media print {
+  nav,
+  footer,
+  .no-print,
+  form[method="POST"] {
+    display: none !important;
+  }
+
+  body {
+    background: white;
+    font-size: 11pt;
+    color: #111827;
+  }
+
+  main {
+    padding: 0 !important;
+  }
+
+  .bg-white {
+    box-shadow: none !important;
+    border: 1px solid #e5e7eb !important;
+  }
+
+  .rounded-xl,
+  .rounded-2xl,
+  .rounded-lg {
+    border-radius: 4px !important;
+  }
+
+  a {
+    text-decoration: none;
+    color: inherit;
+  }
+
+  thead {
+    background-color: #f9fafb !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .bg-indigo-600 {
+    background-color: #4f46e5 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
