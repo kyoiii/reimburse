@@ -14,3 +14,4 @@ build/
 .vercel/
 *.xlsx
 .vercel
+.env*.local

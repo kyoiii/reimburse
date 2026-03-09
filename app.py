@@ -151,8 +151,9 @@ def login():
             return render_template('login.html')
 
         user = User.query.filter_by(username=username).first()
+        password_ok = user.check_password(password) if user else False
 
-        if user and user.check_password(password):
+        if user and password_ok:
             login_user(user, remember=bool(request.form.get('remember')))
             next_page = request.args.get('next')
             flash(f'Welcome back, {user.full_name or user.username}!', 'success')
