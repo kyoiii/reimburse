@@ -36,7 +36,7 @@ def _default_database_url() -> str:
     return _sqlite_database_url(LOCAL_DATA_DIR)
 
 
-app = Flask(__name__, static_folder='public', static_url_path='/static')
+app = Flask(__name__, static_folder='public', static_url_path='')
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
 app.config['SQLALCHEMY_DATABASE_URI'] = _default_database_url()
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
