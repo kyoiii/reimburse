@@ -15,7 +15,7 @@
 
         <!-- Logo / Brand -->
         <div class="flex items-center gap-8">
-          <a href="{% if current_user.is_authenticated %}{{ url_for('dashboard') }}{% else %}{{ url_for('index') }}{% endif %}" class="flex items-center gap-2 group">
+          <a href="{{ url_for('index') }}" class="flex items-center gap-2 group">
             <div class="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center shadow-sm group-hover:bg-indigo-700 transition-colors">
               <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
