@@ -406,7 +406,7 @@ def claims_new():
 
 @app.route('/claims/<int:claim_id>/delete', methods=['POST'])
 @login_required
-def claims_delete(claim_id):
+def delete_claim(claim_id):
     claim = ClaimPeriod.query.get_or_404(claim_id)
 
     if not _claim_owned_or_admin(claim):
@@ -426,7 +426,7 @@ def claims_delete(claim_id):
 
 @app.route('/claims/<int:claim_id>/travel/add', methods=['POST'])
 @login_required
-def travel_add(claim_id):
+def add_travel(claim_id):
     claim = ClaimPeriod.query.get_or_404(claim_id)
 
     if not _claim_owned_or_admin(claim):
@@ -482,7 +482,7 @@ def travel_add(claim_id):
 
 @app.route('/claims/<int:claim_id>/travel/<int:travel_id>/delete', methods=['POST'])
 @login_required
-def travel_delete(claim_id, travel_id):
+def delete_travel(claim_id, travel_id):
     claim = ClaimPeriod.query.get_or_404(claim_id)
     travel = TravelClaim.query.get_or_404(travel_id)
 
@@ -505,7 +505,7 @@ def travel_delete(claim_id, travel_id):
 
 @app.route('/claims/<int:claim_id>/purchase/add', methods=['POST'])
 @login_required
-def purchase_add(claim_id):
+def add_purchase(claim_id):
     claim = ClaimPeriod.query.get_or_404(claim_id)
 
     if not _claim_owned_or_admin(claim):
@@ -553,7 +553,7 @@ def purchase_add(claim_id):
 
 @app.route('/claims/<int:claim_id>/purchase/<int:purchase_id>/delete', methods=['POST'])
 @login_required
-def purchase_delete(claim_id, purchase_id):
+def delete_purchase(claim_id, purchase_id):
     claim = ClaimPeriod.query.get_or_404(claim_id)
     purchase = PurchaseClaim.query.get_or_404(purchase_id)
 
